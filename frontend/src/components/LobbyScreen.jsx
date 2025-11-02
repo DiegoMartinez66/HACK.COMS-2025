@@ -18,14 +18,27 @@ function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, han
   };
 
   return (
-    <div>
-      <h2>Lobby {gameId}</h2>
-      <p>
-        Host{isHost ? '(You)' : ''}: {hostName}
-      </p>
-      <p>
-        Opponent{isHost ? '' : '(You)'}: {joinerName}
-      </p>
+    <div className="fixed inset-0 flex items-center justify-center">
+      
+      <div className="flex flex-col">
+      
+      <h2 className='font-semibold text-4xl pb-3 text-center'>Lobby {gameId}</h2>
+      
+      <div className='bg-red-400 flex flex-col'>
+        <p className='text-2xl flex pl-4'>
+          Host{isHost ? '(You)' : ''}: {hostName}
+        </p>
+      </div>
+
+      <div className='pb-6'></div>
+      
+      <div className='bg-blue-400 flex flex-col'>
+        <p className='text-2xl pl-4'>
+          Opponent{isHost ? '' : '(You)'}: {joinerName}
+        </p>
+      </div>
+
+      <div className='pt-5'></div>
 
       {isHost ? (
         <>
@@ -50,13 +63,16 @@ function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, han
             </div>
           )}
 
-          <button onClick={startGame} disabled={!isReady || !file || !quizGen}>
+          <button onClick={startGame} disabled={!isReady || !file || !quizGen} className='text-2xl'>
             {isReady && file ? 'Start Game!' : 'Opponent has not Joined Yet or File is not Uploaded'}
           </button>
         </>
       ) : (
         <p>Waiting on Host to start game</p>
       )}
+      
+      </div>
+    
     </div>
   );
 }

@@ -7,7 +7,7 @@ import {
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import LandingScreen from './components/LandingScreen';
 import LobbyScreen from './components/LobbyScreen';
 import QuizRoute from './components/QuizRoute';
@@ -319,7 +319,7 @@ function App() {
     }
   };
 
-  return <div>{isAuthReady ? router() : <h3>Connecting to server</h3>}</div>;
+  return <Fragment>{isAuthReady ? router() : <h3>Connecting to server</h3>}</Fragment>;
 }
 
 export default App;
