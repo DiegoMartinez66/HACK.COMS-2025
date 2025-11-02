@@ -29,8 +29,7 @@ function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, han
 
       {isHost ? (
         <>
-          {!file ? (
-            <form onSubmit={(e) => e.preventDefault()}>
+        <form onSubmit={(e) => e.preventDefault()}>
               <label htmlFor="documentUpload">Select a document:</label>
               <input
                 type="file"
@@ -40,6 +39,10 @@ function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, han
                 onChange={handleFileChange}
               />
             </form>
+          {!file ? (
+            <div>
+              <p>Please upload a file</p>
+            </div>
           ) : (
             <div>
               <p>File uploaded: {file.name}</p>
