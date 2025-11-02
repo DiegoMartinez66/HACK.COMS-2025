@@ -1,4 +1,3 @@
-import PlayerBox from './PlayerBox';
 import { useState } from 'react';
 
 function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, handleGenerateQuiz, quizGen }) {
@@ -18,19 +17,32 @@ function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, han
   };
 
   return (
-    <div>
-      <h2>Lobby {gameId}</h2>
-      <p>
-        Host{isHost ? '(You)' : ''}: {hostName}
-      </p>
-      <p>
-        Opponent{isHost ? '' : '(You)'}: {joinerName}
-      </p>
+    <div className="fixed inset-0 flex items-center justify-center">
+      
+      <div className="flex flex-col">
+      
+      <h2 className='font-semibold text-4xl pb-3 text-center'>Lobby {gameId}</h2>
+      
+      <div className='bg-red-400 flex flex-col'>
+        <p className='text-2xl flex pl-4'>
+          Host{isHost ? '(You)' : ''}: {hostName}
+        </p>
+      </div>
+
+      <div className='pb-6'></div>
+      
+      <div className='bg-blue-400 flex flex-col'>
+        <p className='text-2xl pl-4'>
+          Opponent{isHost ? '' : '(You)'}: {joinerName}
+        </p>
+      </div>
+
+      <div className='pt-5'></div>
 
       {isHost ? (
         <>
         <form onSubmit={(e) => e.preventDefault()}>
-              <label htmlFor="documentUpload">Select a document:</label>
+              <label className='text-2xl pr-5'htmlFor="documentUpload">Select a document:</label>
               <input
                 type="file"
                 id="documentUpload"
@@ -41,7 +53,7 @@ function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, han
             </form>
           {!file ? (
             <div>
-              <p>Please upload a file</p>
+              <p className='text-2xl pb-5 pt-5'>Please upload a file</p>
             </div>
           ) : (
             <div>
@@ -50,13 +62,16 @@ function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, han
             </div>
           )}
 
-          <button onClick={startGame} disabled={!isReady || !file || !quizGen}>
+          <button onClick={startGame} disabled={!isReady || !file || !quizGen} className='text-2xl'>
             {isReady && file ? 'Start Game!' : 'Opponent has not Joined Yet or File is not Uploaded'}
           </button>
         </>
       ) : (
         <p>Waiting on Host to start game</p>
       )}
+      
+      </div>
+    
     </div>
   );
 }
