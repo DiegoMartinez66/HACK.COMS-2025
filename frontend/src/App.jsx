@@ -7,7 +7,7 @@ import {
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import LandingScreen from './components/LandingScreen';
 import LobbyScreen from './components/LobbyScreen';
 import QuizRoute from './components/QuizRoute';
@@ -33,20 +33,6 @@ function App() {
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [currentView, setCurrentView] = useState('start');
 
-  const DEFAULT_QUIZ = [
-    { question: 'What is the chemical symbol for water?', answer: 'H2O' },
-    {
-      question: 'What is the largest organ in the human body?',
-      answer: 'Skin',
-    },
-    { question: "Who wrote 'Romeo and Juliet'?", answer: 'Shakespeare' },
-    { question: 'What is 15 multiplied by 9?', answer: '135' },
-    {
-      question: 'What is the process by which plants make their food?',
-      answer: 'Photosynthesis',
-    },
-  ];
-
   const [gameIdInput, setGameIdInput] = useState('');
   const [gameId, setGameId] = useState(null);
   const [gameData, setGameData] = useState(null);
@@ -54,6 +40,8 @@ function App() {
   const [userName, setUserName] = useState('');
   const [uploadedFile, setUploadedFile] = useState(null);
   const [quizGen, setQuizGen] = useState(false);
+  const [secTry, setSecTry] = useState(false);
+  const [incorrect, setIncorrect] = useState([]);
 
   // Firebase stuff
   useEffect(() => {
@@ -101,10 +89,8 @@ function App() {
           // TODO: Update view based on status
           if (data.status === 'in_progress' && currentView !== 'race') {
             setCurrentView('race');
-            // TODO: timer stuff
           } else if (data.status === 'finished' && currentView !== 'results') {
             setCurrentView('results');
-            // TODO: timer stuff
           }
         } else {
           setGameData(null);
@@ -118,6 +104,8 @@ function App() {
 
     return () => unsubscribe();
   }, [db, gameId, isAuthReady, currentView]);
+
+  //useEffect(() => { return () => stopTimer(); }, [stopTimer]);
 
   // Game stuff
   const getPlayerKey = useCallback(() => {
@@ -141,9 +129,10 @@ function App() {
       joinerName: null,
       status: 'waiting',
       questions: null,
-      hostProgress: { currentIndex: 0, correctCount: 0, timeTaken: null },
-      joinerProgress: { currentIndex: 0, correctCount: 0, timeTaken: null },
+      hostProgress: { currentIndex: 0, correctCount: 0, finished: false },
+      joinerProgress: { currentIndex: 0, correctCount: 0, finished: false },
       winnerId: null,
+      winnerName: null,
       createdAt: new Date(),
     };
 
@@ -161,7 +150,10 @@ function App() {
     if (!db || !userId || !gameIdInput) return;
     const id = gameIdInput.trim().toUpperCase();
     const gameRef = doc(db, `quizRaces`, id);
-    1;
+    if (gameRef.joinerId) {
+      alert('That game is already filled up!');
+      return;
+    }
 
     try {
       await updateDoc(gameRef, {
@@ -198,44 +190,59 @@ function App() {
     const currentQuestionIndex = currentProgress.currentIndex;
     const currentQuestion = gameData.questions[currentQuestionIndex];
 
-    const isCorrect = currentQuestion.correct_answer.trim().toLowerCase() === answer.trim().toLowerCase();
+    const isCorrect =
+      currentQuestion.correct_answer.trim().toLowerCase() ===
+      answer.trim().toLowerCase();
+    let tmpIncorrect = [...incorrect];
+    if (!isCorrect) {
+      tmpIncorrect.push(currentQuestionIndex);
+      setIncorrect(tmpIncorrect);
+    }
 
-    if(isCorrect){
-        alert("Correct")
-    }else{
-        alert("Incorrect")
+    if (isCorrect) {
+      alert('Correct');
+    } else {
+      alert('Incorrect');
     }
 
     let newIndex = currentQuestionIndex + 1;
+    if (secTry || (newIndex >= gameData.questions.length && incorrect.length > 0)) {
+      setSecTry(true);
+      newIndex = tmpIncorrect.shift();
+      setIncorrect(tmpIncorrect);
+    }
+
     let newCorrectCount = currentProgress.correctCount + (isCorrect ? 1 : 0);
     let updatePayload = {
       [`${playerKey}.currentIndex`]: newIndex,
       [`${playerKey}.correctCount`]: newCorrectCount,
     };
 
-    console.log(newIndex >= gameData.questions.length)
-    if (newIndex >= gameData.questions.length) {
-      // TODO: timer
-      
+    console.log(incorrect);
+    if (
+      (newIndex >= gameData.questions.length || secTry) &&
+      incorrect.length === 0
+    ) {
+      updatePayload[`${playerKey}.finished`] = true;
+
       let winnerUpdate = {};
-      const hostFinished = playerKey === 'hostProgress' ? true : gameData.hostProgress.timeTaken !== null;
-      const joinerFinished = playerKey === 'joinerProgress' ? true : gameData.joinerProgress.timeTaken !== null;
-      
+      const hostFinished =
+        playerKey === 'hostProgress'
+          ? true
+          : Boolean(gameData.hostProgress && gameData.hostProgress.finished);
+      const joinerFinished =
+        playerKey === 'joinerProgress'
+          ? true
+          : Boolean(gameData.joinerProgress && gameData.joinerProgress.finished);
+
       if (hostFinished && joinerFinished) {
-          const hostTime = playerKey === 'hostProgress' ? finalTime : gameData.hostProgress.timeTaken;
-          const joinerTime = playerKey === 'joinerProgress' ? finalTime : gameData.joinerProgress.timeTaken;
-          
-          if (hostTime !== null && joinerTime !== null) {
-            // Check for tie explicitly
-            if (hostTime === joinerTime) {
-                winnerUpdate.winnerId = null; // null signifies a tie
-            } else {
-                winnerUpdate.winnerId = hostTime < joinerTime ? gameData.hostId : gameData.joinerId;
-            }
-            winnerUpdate.status = 'finished';
-          }
+        // both finished -> tie
+        winnerUpdate.winnerId = null;
+        winnerUpdate.status = 'finished';
       } else if (hostFinished || joinerFinished) {
-          winnerUpdate.status = 'finished';
+        winnerUpdate.winnerId = hostFinished ? gameData.hostId : gameData.joinerId;
+        winnerUpdate.winnerName = hostFinished ? gameData.hostName : gameData.joinerName;
+        winnerUpdate.status = 'finished';
       }
 
       updatePayload = { ...updatePayload, ...winnerUpdate };
@@ -244,8 +251,7 @@ function App() {
     try {
       await updateDoc(doc(db, `/quizRaces`, gameId), updatePayload);
     } catch (e) {
-      console.error("Error submitting answer:", e);
-      setError("Error updating progress.");
+      console.error('Error submitting answer:', e);
     }
   };
 
@@ -315,11 +321,15 @@ function App() {
           />
         );
       case 'results':
-        return <Results />;
+        return <Results gameData={gameData} />;
     }
   };
 
-  return <Fragment>{isAuthReady ? router() : <h3>Connecting to server</h3>}</Fragment>;
+  return (
+    <Fragment>
+      {isAuthReady ? router() : <h3>Connecting to server</h3>}
+    </Fragment>
+  );
 }
 
 export default App;
