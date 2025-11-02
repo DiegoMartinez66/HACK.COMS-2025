@@ -7,11 +7,12 @@ import {
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import LandingScreen from './components/LandingScreen';
 import LobbyScreen from './components/LobbyScreen';
 import QuizRoute from './components/QuizRoute';
 import Results from './components/Results';
+import { generateQuizFromFile } from './openrouter';
 
 function App() {
   // Your web app's Firebase configuration
@@ -24,6 +25,7 @@ function App() {
     messagingSenderId: import.meta.env.VITE_FIREBASE_MSG_SENDER_ID,
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
     measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+    openRouterApiKey: import.meta.env.VITE_OPENROUTER_API_KEY,
   };
   const initialAuthToken =
     typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
@@ -97,10 +99,10 @@ function App() {
           const data = docSnap.data();
           setGameData(data);
           // TODO: Update view based on status
-          if(data.status === 'in_progress' && currentView !== 'race') {
+          if (data.status === 'in_progress' && currentView !== 'race') {
             setCurrentView('race');
             // TODO: timer stuff
-          } else if(data.status === 'finished' && currentView !== 'results') {
+          } else if (data.status === 'finished' && currentView !== 'results') {
             setCurrentView('results');
             // TODO: timer stuff
           }
@@ -187,6 +189,36 @@ function App() {
     }
   };
 
+  // 💡 NEW: Gemini quiz generator (host-only)
+  const handleGenerateQuiz = async () => {
+    if (!uploadedFile) {
+      alert('Please upload a file first.');
+      return;
+    }
+    if (!db || !gameId) {
+      alert('Game not initialized yet.');
+      return;
+    }
+
+    try {
+      const flashcards = await generateQuizFromFile(
+        uploadedFile,
+        firebaseConfig.openRouterApiKey
+      );
+      console.log('Generated flashcards:', flashcards);
+
+      // 🔥 Update Firestore so both players get the same quiz
+      await updateDoc(doc(db, `quizRaces`, gameId), {
+        questions: flashcards,
+      });
+
+      alert('✅ Quiz generated!');
+    } catch (e) {
+      console.error(e);
+      alert('nah bruh it didnt work');
+    }
+  };
+
   const router = () => {
     switch (currentView) {
       case 'start':
@@ -198,7 +230,6 @@ function App() {
             setGameIdInput={setGameIdInput}
             userName={userName}
             setUserName={setUserName}
-            setUploadedFile={setUploadedFile}
           />
         );
       case 'lobby':
@@ -208,7 +239,8 @@ function App() {
             gameData={gameData}
             isHost={isHost}
             startGame={startGame}
-            userName={userName}
+            setUploadedFile={setUploadedFile}
+            handleGenerateQuiz={handleGenerateQuiz}
           />
         );
       case 'race':
@@ -222,9 +254,7 @@ function App() {
             />
         )
       case 'results':
-        return (
-            <Results />
-        )
+        return <Results />;
     }
   };
 

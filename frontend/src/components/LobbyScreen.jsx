@@ -1,8 +1,7 @@
 import PlayerBox from './PlayerBox';
-import { useNavigation, useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
-function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile }) {
+function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, handleGenerateQuiz }) {
   if (!gameData) return;
 
   const isReady = gameData.joinerId !== null;
@@ -27,6 +26,7 @@ function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile }) {
       <p>
         Opponent{isHost ? '' : '(You)'}: {joinerName}
       </p>
+
       {isHost ? (
         <>
           {!file ? (
@@ -36,15 +36,17 @@ function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile }) {
                 type="file"
                 id="documentUpload"
                 name="document"
-                accept=".pdf,.doc,.docx"
+                accept=".pdf,.doc,.docx,.txt"
                 onChange={handleFileChange}
               />
             </form>
           ) : (
             <div>
               <p>File uploaded: {file.name}</p>
+              <button onClick={handleGenerateQuiz}>Generate Quiz from File (Gemini)</button>
             </div>
           )}
+
           <button onClick={startGame} disabled={!isReady}>
             {isReady ? 'Start Game!' : 'Opponent has not Joined Yet'}
           </button>
