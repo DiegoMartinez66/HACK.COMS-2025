@@ -206,9 +206,10 @@ function App() {
     }
 
     let newIndex = currentQuestionIndex + 1;
-    if (secTry || (newIndex >= gameData.questions.length && incorrect.length > 0)) {
+    if (secTry || (newIndex >= gameData.questions.length && tmpIncorrect.length > 0)) {
       setSecTry(true);
       newIndex = tmpIncorrect.shift();
+      newIndex = newIndex ? newIndex : gameData.questions.length;
       setIncorrect(tmpIncorrect);
     }
 
@@ -218,10 +219,10 @@ function App() {
       [`${playerKey}.correctCount`]: newCorrectCount,
     };
 
-    console.log(incorrect);
+    console.log(tmpIncorrect);
     if (
       (newIndex >= gameData.questions.length || secTry) &&
-      incorrect.length === 0
+      tmpIncorrect.length === 0
     ) {
       updatePayload[`${playerKey}.finished`] = true;
 
