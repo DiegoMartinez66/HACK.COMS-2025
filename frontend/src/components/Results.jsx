@@ -1,5 +1,6 @@
 function Results({ gameData }) {
     const winnerName = gameData.winnerName;
+    const questions = gameData.questions;
     const tie = winnerName ? false : true;
     const initial = winnerName ? winnerName.charAt(0) : "";
     return (
@@ -18,6 +19,21 @@ function Results({ gameData }) {
                     <p className="text-xl text-gray-600">has won the game!</p>
                 </div>
             )}
+                //I vibe codded hard here aka got this from ai
+                <div>
+                    {questions.map((q, qi) => (
+                        <div key={qi}>
+                            <h3>{qi + 1}. {q.question}</h3>
+                            <ul>
+                                {Array.isArray(q.options) ? q.options.map((opt, oi) => (
+                                    <li key={oi}>
+                                        {opt}{opt === q.correct_answer ? ' (correct)' : ''}
+                                    </li>
+                                )) : null}
+                            </ul>
+                        </div>
+                    ))}
+                </div>
         </div>
     );
 }
