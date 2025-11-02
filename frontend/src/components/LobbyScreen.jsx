@@ -47,8 +47,8 @@ function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, han
             </div>
           )}
 
-          <button onClick={startGame} disabled={!isReady}>
-            {isReady ? 'Start Game!' : 'Opponent has not Joined Yet'}
+          <button onClick={startGame} disabled={!isReady || !file}>
+            {isReady && file ? 'Start Game!' : 'Opponent has not Joined Yet or File is not Uploaded'}
           </button>
         </>
       ) : (
