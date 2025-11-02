@@ -1,4 +1,4 @@
-import AnswerBox from "../components/AnswerBox"
+import AnswerBox from "./AnswerBox"
 
 function QuizRoute(){
     return(
