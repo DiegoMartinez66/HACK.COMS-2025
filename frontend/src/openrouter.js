@@ -5,7 +5,6 @@ export async function generateQuizFromFile(file, apiKey) {
 
   let fileText = '';
 
-  // 🧠 Detect file type
   if (file.name.endsWith('.docx')) {
     const arrayBuffer = await file.arrayBuffer();
     const { value } = await mammoth.extractRawText({ arrayBuffer });
@@ -21,7 +20,6 @@ export async function generateQuizFromFile(file, apiKey) {
 
   console.log(fileText);
 
-  // 💬 Updated prompt — force JSON-only output
   const prompt = `
   You are a quiz questions generator. Read the following text and create
   a JSON array of 5–10 question-answer pairs suitable for a quiz game.
