@@ -243,7 +243,15 @@ function App() {
           />
         );
       case 'race':
-        return <QuizRoute />;
+        return (
+            <QuizRoute 
+            question={DEFAULT_QUIZ[0].question} 
+            a1={DEFAULT_QUIZ[0].answer}
+            a2={"answer 2"}
+            a3={"answer 3"}
+            a4={"answer 4"}
+            />
+        )
       case 'results':
         return <Results />;
     }

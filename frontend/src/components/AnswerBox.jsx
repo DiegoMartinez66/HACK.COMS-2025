@@ -1,9 +1,12 @@
+import QuizRoute from "./QuizRoute"
+
 function AnswerBox({ correct, answer }){
     const handleSubmit = () => {
         if(correct){
-            //whatever code for right answer
+            alert("Correct")
+
         } else{
-            //whatever code for wrong answer
+            alert("False")
         }
     }
     
