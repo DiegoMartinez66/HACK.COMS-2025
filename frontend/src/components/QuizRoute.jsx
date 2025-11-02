@@ -1,26 +1,23 @@
-import AnswerBox from "./AnswerBox";
+function QuizRoute({gameData, userId, getPlayerKey, submitAnswer }) {
 
-function QuizRoute({ question, a1, a2, a3, a4 }) {
-  const correctAnswer = a1
+  const playerKey = getPlayerKey();
+  const curProgress = gameData[playerKey];
+  const oppKey = playerKey === 'hostProgress' ? 'joinerProgress' : 'hostProgress';
+  const oppProgress = gameData[oppKey];
+  const questionObj = gameData.questions[curProgress.currentIndex];
+  console.log(questionObj.options)
 
-  const answerArray = [a1, a2, a3, a4].filter(Boolean)
-
-  const pool = [...answerArray]
-
-  const pickRandom = () => pool.splice(Math.floor(Math.random() * pool.length), 1)[0]
-
-  const v1 = pickRandom()
-  const v2 = pickRandom()
-  const v3 = pickRandom()
-  const v4 = pickRandom()
+  const handleClick = (option) => {
+    submitAnswer(option);
+  }
 
   return (
     <div>
-      <h1>Question: {question}</h1>
-      {<AnswerBox correct={v1 === correctAnswer} answer={v1} />}
-      {<AnswerBox correct={v2 === correctAnswer} answer={v2} />}
-      {<AnswerBox correct={v3 === correctAnswer} answer={v3} />}
-      {<AnswerBox correct={v4 === correctAnswer} answer={v4} />}
+      <h1>Question: {questionObj.question}</h1>
+      <button id='0' onClick={() => handleClick(questionObj.options[0])}>{questionObj.options[0]}</button>
+      <button id='1' onClick={() => handleClick(questionObj.options[1])}>{questionObj.options[1]}</button>
+      <button id='2' onClick={() => handleClick(questionObj.options[2])}>{questionObj.options[2]}</button>
+      <button id='3' onClick={() => handleClick(questionObj.options[3])}>{questionObj.options[3]}</button>
     </div>
   );
 }

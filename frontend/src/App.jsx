@@ -53,6 +53,7 @@ function App() {
   const [isHost, setIsHost] = useState(false);
   const [userName, setUserName] = useState('');
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [quizGen, setQuizGen] = useState(false);
 
   // Firebase stuff
   useEffect(() => {
@@ -188,6 +189,60 @@ function App() {
     }
   };
 
+  const submitAnswer = async (answer) => {
+    if (!db || !gameId || !gameData) return;
+
+    const playerKey = getPlayerKey();
+
+    const currentProgress = gameData[playerKey];
+    const currentQuestionIndex = currentProgress.currentIndex;
+    const currentQuestion = gameData.questions[currentQuestionIndex];
+
+    const isCorrect = currentQuestion.correct_answer.trim().toLowerCase() === answer.trim().toLowerCase();
+
+    let newIndex = currentQuestionIndex + 1;
+    let newCorrectCount = currentProgress.correctCount + (isCorrect ? 1 : 0);
+    let updatePayload = {
+      [`${playerKey}.currentIndex`]: newIndex,
+      [`${playerKey}.correctCount`]: newCorrectCount,
+    };
+
+    console.log(newIndex >= gameData.questions.length)
+    if (newIndex >= gameData.questions.length) {
+      // TODO: timer
+      
+      let winnerUpdate = {};
+      const hostFinished = playerKey === 'hostProgress' ? true : gameData.hostProgress.timeTaken !== null;
+      const joinerFinished = playerKey === 'joinerProgress' ? true : gameData.joinerProgress.timeTaken !== null;
+      
+      if (hostFinished && joinerFinished) {
+          const hostTime = playerKey === 'hostProgress' ? finalTime : gameData.hostProgress.timeTaken;
+          const joinerTime = playerKey === 'joinerProgress' ? finalTime : gameData.joinerProgress.timeTaken;
+          
+          if (hostTime !== null && joinerTime !== null) {
+            // Check for tie explicitly
+            if (hostTime === joinerTime) {
+                winnerUpdate.winnerId = null; // null signifies a tie
+            } else {
+                winnerUpdate.winnerId = hostTime < joinerTime ? gameData.hostId : gameData.joinerId;
+            }
+            winnerUpdate.status = 'finished';
+          }
+      } else if (hostFinished || joinerFinished) {
+          winnerUpdate.status = 'finished';
+      }
+
+      updatePayload = { ...updatePayload, ...winnerUpdate };
+    }
+
+    try {
+      await updateDoc(doc(db, `/quizRaces`, gameId), updatePayload);
+    } catch (e) {
+      console.error("Error submitting answer:", e);
+      setError("Error updating progress.");
+    }
+  };
+
   // 💡 NEW: Gemini quiz generator (host-only)
   const handleGenerateQuiz = async () => {
     if (!uploadedFile) {
@@ -212,6 +267,7 @@ function App() {
       });
 
       alert('✅ Quiz generated!');
+      setQuizGen(true);
     } catch (e) {
       console.error(e);
       alert('nah bruh it didnt work');
@@ -240,18 +296,18 @@ function App() {
             startGame={startGame}
             setUploadedFile={setUploadedFile}
             handleGenerateQuiz={handleGenerateQuiz}
+            quizGen={quizGen}
           />
         );
       case 'race':
         return (
-            <QuizRoute 
-            question={DEFAULT_QUIZ[0].question} 
-            a1={DEFAULT_QUIZ[0].answer}
-            a2={"answer 2"}
-            a3={"answer 3"}
-            a4={"answer 4"}
-            />
-        )
+          <QuizRoute
+            gameData={gameData}
+            userId={userId}
+            getPlayerKey={getPlayerKey}
+            submitAnswer={submitAnswer}
+          />
+        );
       case 'results':
         return <Results />;
     }

@@ -1,7 +1,7 @@
 import PlayerBox from './PlayerBox';
 import { useState } from 'react';
 
-function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, handleGenerateQuiz }) {
+function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, handleGenerateQuiz, quizGen }) {
   if (!gameData) return;
 
   const isReady = gameData.joinerId !== null;
@@ -47,7 +47,7 @@ function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, han
             </div>
           )}
 
-          <button onClick={startGame} disabled={!isReady || !file}>
+          <button onClick={startGame} disabled={!isReady || !file || !quizGen}>
             {isReady && file ? 'Start Game!' : 'Opponent has not Joined Yet or File is not Uploaded'}
           </button>
         </>
