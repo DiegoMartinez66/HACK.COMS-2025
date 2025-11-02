@@ -21,23 +21,23 @@ function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, han
       
       <div className="flex flex-col">
       
-      <h2 className='font-semibold text-4xl pb-3 text-center'>Lobby {gameId}</h2>
+      <h2 className='font-bold   text-4xl pb-3 text-center'>Game Code: {gameId}</h2>
       
-      <div className='bg-red-400 flex flex-col'>
-        <p className='text-2xl flex pl-4'>
-          Host{isHost ? '(You)' : ''}: {hostName}
+      <div className='bg-blue-500 flex flex-col rounded-3xl'>
+        <p className='text-2xl text-white font-semibold flex p-3 pl-6'>
+          Host{isHost ? ' (You)' : ''}: {hostName}
         </p>
       </div>
 
-      <div className='pb-6'></div>
+      <div className='pb-2'></div>
       
-      <div className='bg-blue-400 flex flex-col'>
-        <p className='text-2xl pl-4'>
+      <div className='bg-red-500 flex flex-col rounded-3xl'>
+        <p className='text-2xl text-white font-semibold font-normal flex p-3 pl-6'>
           Opponent{isHost ? '' : '(You)'}: {joinerName}
         </p>
       </div>
 
-      <div className='pt-5'></div>
+      <div className='p-8'></div>
 
       {isHost ? (
         <>
@@ -53,21 +53,24 @@ function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, han
             </form>
           {!file ? (
             <div>
-              <p className='text-2xl pb-5 pt-5'>Please upload a file</p>
+              <p className='text-l scale-100 text-gray-600'>Please upload a file</p>
             </div>
           ) : (
             <div>
               <p>File uploaded: {file.name}</p>
-              <button onClick={handleGenerateQuiz}>Generate Quiz from File (Gemini)</button>
+              <button className='bg-gray-300 hover:bg-gray-400' onClick={handleGenerateQuiz}>Generate Quiz from File (Gemini)</button>
             </div>
           )}
-
-          <button onClick={startGame} disabled={!isReady || !file || !quizGen} className='text-2xl'>
-            {isReady && file ? 'Start Game!' : 'Opponent has not Joined Yet or File is not Uploaded'}
-          </button>
+          <div class="pt-10">
+            <button onClick={startGame} disabled={!isReady || !file || !quizGen} className='bg-gray-200 hover:bg-gray-400 text-2xl'>
+              {isReady && file ? 'Start Game!' : 'Opponent has not Joined Yet or Quiz is not Generated'}
+            </button>
+          </div>
         </>
       ) : (
-        <p>Waiting on Host to start game</p>
+        <button disabled={!true} className='bg-gray-300 text-2xl border-0'>
+                      Waiting on Host to start game
+            </button>
       )}
       
       </div>

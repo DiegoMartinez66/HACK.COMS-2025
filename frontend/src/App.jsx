@@ -256,7 +256,7 @@ function App() {
     }
   };
 
-  // 💡 NEW: Gemini quiz generator (host-only)
+  // gemini quiz gen
   const handleGenerateQuiz = async () => {
     if (!uploadedFile) {
       alert('Please upload a file first.');
@@ -274,12 +274,11 @@ function App() {
       );
       console.log('Generated flashcards:', flashcards);
 
-      // 🔥 Update Firestore so both players get the same quiz
       await updateDoc(doc(db, `quizRaces`, gameId), {
         questions: flashcards,
       });
 
-      alert('✅ Quiz generated!');
+      alert('Quiz successfully generated!');
       setQuizGen(true);
     } catch (e) {
       console.error(e);
