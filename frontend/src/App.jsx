@@ -10,6 +10,8 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import LandingScreen from './components/LandingScreen';
 import LobbyScreen from './components/LobbyScreen';
+import QuizRoute from './components/QuizRoute';
+import Results from './components/Results';
 
 function App() {
   // Your web app's Firebase configuration
@@ -49,6 +51,7 @@ function App() {
   const [gameData, setGameData] = useState(null);
   const [isHost, setIsHost] = useState(false);
   const [userName, setUserName] = useState('');
+  const [uploadedFile, setUploadedFile] = useState(null);
 
   // Firebase stuff
   useEffect(() => {
@@ -195,6 +198,7 @@ function App() {
             setGameIdInput={setGameIdInput}
             userName={userName}
             setUserName={setUserName}
+            setUploadedFile={setUploadedFile}
           />
         );
       case 'lobby':
@@ -208,9 +212,13 @@ function App() {
           />
         );
       case 'race':
-        return <div>TODO</div>;
+        return (
+            <QuizRoute />
+        )
       case 'results':
-        return <div>TODO</div>;
+        return (
+            <Results />
+        )
     }
   };
 
