@@ -33,20 +33,6 @@ function App() {
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [currentView, setCurrentView] = useState('start');
 
-  const DEFAULT_QUIZ = [
-    { question: 'What is the chemical symbol for water?', answer: 'H2O' },
-    {
-      question: 'What is the largest organ in the human body?',
-      answer: 'Skin',
-    },
-    { question: "Who wrote 'Romeo and Juliet'?", answer: 'Shakespeare' },
-    { question: 'What is 15 multiplied by 9?', answer: '135' },
-    {
-      question: 'What is the process by which plants make their food?',
-      answer: 'Photosynthesis',
-    },
-  ];
-
   const [gameIdInput, setGameIdInput] = useState('');
   const [gameId, setGameId] = useState(null);
   const [gameData, setGameData] = useState(null);
@@ -54,6 +40,8 @@ function App() {
   const [userName, setUserName] = useState('');
   const [uploadedFile, setUploadedFile] = useState(null);
   const [quizGen, setQuizGen] = useState(false);
+  const [secTry, setSecTry] = useState(false);
+  let incorrect = [];
 
   // Firebase stuff
   useEffect(() => {
@@ -161,7 +149,10 @@ function App() {
     if (!db || !userId || !gameIdInput) return;
     const id = gameIdInput.trim().toUpperCase();
     const gameRef = doc(db, `quizRaces`, id);
-    1;
+    if(!gameRef.joinerId) {
+      alert('That game is already filled up!');
+      return;
+    }
 
     try {
       await updateDoc(gameRef, {
@@ -199,16 +190,23 @@ function App() {
     const currentQuestion = gameData.questions[currentQuestionIndex];
 
     const isCorrect = currentQuestion.correct_answer.trim().toLowerCase() === answer.trim().toLowerCase();
+    if(!isCorrect) {
+      incorrect.push(currentQuestionIndex);
+    }
 
     let newIndex = currentQuestionIndex + 1;
+    if(secTry || (newIndex >= gameData.questions.length && incorrect.length > 0)) {
+      setSecTry(true);
+      newIndex = incorrect.shift();
+    }
     let newCorrectCount = currentProgress.correctCount + (isCorrect ? 1 : 0);
     let updatePayload = {
       [`${playerKey}.currentIndex`]: newIndex,
       [`${playerKey}.correctCount`]: newCorrectCount,
     };
 
-    console.log(newIndex >= gameData.questions.length)
-    if (newIndex >= gameData.questions.length) {
+    
+    if ((newIndex >= gameData.questions.length || secTry) && incorrect.length === 0) {
       // TODO: timer
       
       let winnerUpdate = {};
