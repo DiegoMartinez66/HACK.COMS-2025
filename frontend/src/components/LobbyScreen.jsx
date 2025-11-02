@@ -1,4 +1,3 @@
-import PlayerBox from './PlayerBox';
 import { useState } from 'react';
 
 function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, handleGenerateQuiz, quizGen }) {
@@ -43,7 +42,7 @@ function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, han
       {isHost ? (
         <>
         <form onSubmit={(e) => e.preventDefault()}>
-              <label htmlFor="documentUpload">Select a document:</label>
+              <label className='text-2xl pr-5'htmlFor="documentUpload">Select a document:</label>
               <input
                 type="file"
                 id="documentUpload"
@@ -54,7 +53,7 @@ function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, han
             </form>
           {!file ? (
             <div>
-              <p>Please upload a file</p>
+              <p className='text-2xl pb-5 pt-5'>Please upload a file</p>
             </div>
           ) : (
             <div>
