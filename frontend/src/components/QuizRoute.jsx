@@ -22,7 +22,9 @@ function QuizRoute({gameData, userId, getPlayerKey, submitAnswer }) {
       <button id='2' onClick={() => handleClick(questionObj.options[2])}>{questionObj.options[2]}</button>
       <button id='3' onClick={() => handleClick(questionObj.options[3])}>{questionObj.options[3]}</button>
       <h3>Your Progress: {myPercent}%</h3>
+      <progress value={myPercent} max="100"/>
       <h3>Opponent Progress: {oppPercent}%</h3>
+      <progress value={oppPercent} max="100"/>
     </div>
   );
 }
