@@ -200,6 +200,12 @@ function App() {
 
     const isCorrect = currentQuestion.correct_answer.trim().toLowerCase() === answer.trim().toLowerCase();
 
+    if(isCorrect){
+        alert("Correct")
+    }else{
+        alert("Incorrect")
+    }
+
     let newIndex = currentQuestionIndex + 1;
     let newCorrectCount = currentProgress.correctCount + (isCorrect ? 1 : 0);
     let updatePayload = {
