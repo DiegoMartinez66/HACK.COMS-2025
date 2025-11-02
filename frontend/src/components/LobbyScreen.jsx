@@ -1,13 +1,21 @@
 import PlayerBox from './PlayerBox';
-import { useNavigation, useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
-function LobbyScreen({ gameId, gameData, isHost, startGame }) {
+function LobbyScreen({ gameId, gameData, isHost, startGame, setUploadedFile, handleGenerateQuiz, quizGen }) {
   if (!gameData) return;
 
   const isReady = gameData.joinerId !== null;
 
   const hostName = gameData.hostName;
   const joinerName = gameData.joinerName || 'Waiting for Opponent...';
+
+  const [file, setFile] = useState(null);
+  
+  const handleFileChange = (e) => {
+    const f = e.target.files[0];
+    setFile(f);
+    if (typeof setUploadedFile === 'function') setUploadedFile(f);
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center">
@@ -33,9 +41,32 @@ function LobbyScreen({ gameId, gameData, isHost, startGame }) {
       <div className='pt-5'></div>
 
       {isHost ? (
-        <button onClick={startGame} disabled={!isReady} className='text-2xl'>
-          {isReady ? 'Start Game!' : 'Opponent has not Joined Yet'}
-        </button>
+        <>
+        <form onSubmit={(e) => e.preventDefault()}>
+              <label htmlFor="documentUpload">Select a document:</label>
+              <input
+                type="file"
+                id="documentUpload"
+                name="document"
+                accept=".pdf,.doc,.docx,.txt"
+                onChange={handleFileChange}
+              />
+            </form>
+          {!file ? (
+            <div>
+              <p>Please upload a file</p>
+            </div>
+          ) : (
+            <div>
+              <p>File uploaded: {file.name}</p>
+              <button onClick={handleGenerateQuiz}>Generate Quiz from File (Gemini)</button>
+            </div>
+          )}
+
+          <button onClick={startGame} disabled={!isReady || !file || !quizGen} className='text-2xl'>
+            {isReady && file ? 'Start Game!' : 'Opponent has not Joined Yet or File is not Uploaded'}
+          </button>
+        </>
       ) : (
         <p>Waiting on Host to start game</p>
       )}

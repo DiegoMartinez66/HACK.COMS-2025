@@ -7,9 +7,12 @@ import {
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import LandingScreen from './components/LandingScreen';
 import LobbyScreen from './components/LobbyScreen';
+import QuizRoute from './components/QuizRoute';
+import Results from './components/Results';
+import { generateQuizFromFile } from './openrouter';
 
 function App() {
   // Your web app's Firebase configuration
@@ -49,6 +52,8 @@ function App() {
   const [gameData, setGameData] = useState(null);
   const [isHost, setIsHost] = useState(false);
   const [userName, setUserName] = useState('');
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [quizGen, setQuizGen] = useState(false);
 
   // Firebase stuff
   useEffect(() => {
@@ -94,10 +99,10 @@ function App() {
           const data = docSnap.data();
           setGameData(data);
           // TODO: Update view based on status
-          if(data.status === 'in_progress' && currentView !== 'race') {
+          if (data.status === 'in_progress' && currentView !== 'race') {
             setCurrentView('race');
             // TODO: timer stuff
-          } else if(data.status === 'finished' && currentView !== 'results') {
+          } else if (data.status === 'finished' && currentView !== 'results') {
             setCurrentView('results');
             // TODO: timer stuff
           }
@@ -135,7 +140,7 @@ function App() {
       joinerId: null,
       joinerName: null,
       status: 'waiting',
-      questions: DEFAULT_QUIZ,
+      questions: null,
       hostProgress: { currentIndex: 0, correctCount: 0, timeTaken: null },
       joinerProgress: { currentIndex: 0, correctCount: 0, timeTaken: null },
       winnerId: null,
@@ -184,6 +189,91 @@ function App() {
     }
   };
 
+  const submitAnswer = async (answer) => {
+    if (!db || !gameId || !gameData) return;
+
+    const playerKey = getPlayerKey();
+
+    const currentProgress = gameData[playerKey];
+    const currentQuestionIndex = currentProgress.currentIndex;
+    const currentQuestion = gameData.questions[currentQuestionIndex];
+
+    const isCorrect = currentQuestion.correct_answer.trim().toLowerCase() === answer.trim().toLowerCase();
+
+    let newIndex = currentQuestionIndex + 1;
+    let newCorrectCount = currentProgress.correctCount + (isCorrect ? 1 : 0);
+    let updatePayload = {
+      [`${playerKey}.currentIndex`]: newIndex,
+      [`${playerKey}.correctCount`]: newCorrectCount,
+    };
+
+    console.log(newIndex >= gameData.questions.length)
+    if (newIndex >= gameData.questions.length) {
+      // TODO: timer
+      
+      let winnerUpdate = {};
+      const hostFinished = playerKey === 'hostProgress' ? true : gameData.hostProgress.timeTaken !== null;
+      const joinerFinished = playerKey === 'joinerProgress' ? true : gameData.joinerProgress.timeTaken !== null;
+      
+      if (hostFinished && joinerFinished) {
+          const hostTime = playerKey === 'hostProgress' ? finalTime : gameData.hostProgress.timeTaken;
+          const joinerTime = playerKey === 'joinerProgress' ? finalTime : gameData.joinerProgress.timeTaken;
+          
+          if (hostTime !== null && joinerTime !== null) {
+            // Check for tie explicitly
+            if (hostTime === joinerTime) {
+                winnerUpdate.winnerId = null; // null signifies a tie
+            } else {
+                winnerUpdate.winnerId = hostTime < joinerTime ? gameData.hostId : gameData.joinerId;
+            }
+            winnerUpdate.status = 'finished';
+          }
+      } else if (hostFinished || joinerFinished) {
+          winnerUpdate.status = 'finished';
+      }
+
+      updatePayload = { ...updatePayload, ...winnerUpdate };
+    }
+
+    try {
+      await updateDoc(doc(db, `/quizRaces`, gameId), updatePayload);
+    } catch (e) {
+      console.error("Error submitting answer:", e);
+      setError("Error updating progress.");
+    }
+  };
+
+  // 💡 NEW: Gemini quiz generator (host-only)
+  const handleGenerateQuiz = async () => {
+    if (!uploadedFile) {
+      alert('Please upload a file first.');
+      return;
+    }
+    if (!db || !gameId) {
+      alert('Game not initialized yet.');
+      return;
+    }
+
+    try {
+      const flashcards = await generateQuizFromFile(
+        uploadedFile,
+        import.meta.env.VITE_OPENROUTER_API_KEY
+      );
+      console.log('Generated flashcards:', flashcards);
+
+      // 🔥 Update Firestore so both players get the same quiz
+      await updateDoc(doc(db, `quizRaces`, gameId), {
+        questions: flashcards,
+      });
+
+      alert('✅ Quiz generated!');
+      setQuizGen(true);
+    } catch (e) {
+      console.error(e);
+      alert('nah bruh it didnt work');
+    }
+  };
+
   const router = () => {
     switch (currentView) {
       case 'start':
@@ -204,13 +294,22 @@ function App() {
             gameData={gameData}
             isHost={isHost}
             startGame={startGame}
-            userName={userName}
+            setUploadedFile={setUploadedFile}
+            handleGenerateQuiz={handleGenerateQuiz}
+            quizGen={quizGen}
           />
         );
       case 'race':
-        return <div>TODO</div>;
+        return (
+          <QuizRoute
+            gameData={gameData}
+            userId={userId}
+            getPlayerKey={getPlayerKey}
+            submitAnswer={submitAnswer}
+          />
+        );
       case 'results':
-        return <div>TODO</div>;
+        return <Results />;
     }
   };
 
