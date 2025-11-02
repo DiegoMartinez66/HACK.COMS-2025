@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 function QuizRoute({ gameData, userId, getPlayerKey, submitAnswer }) {
 
   const playerKey = getPlayerKey();
@@ -14,6 +16,23 @@ function QuizRoute({ gameData, userId, getPlayerKey, submitAnswer }) {
     submitAnswer(option);
   }
 
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      const index = Number(event.key) - 1;
+      
+      if (index >= 0 && index <= 3 && questionObj.options[index]) {
+        event.preventDefault();
+        handleClick(questionObj.options[index]);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [questionObj.options]);
+
   return (
     <div className="h-screen w-screen flex flex-col justify-between bg-gray-200 text-white">
       {/* question */}
@@ -28,28 +47,40 @@ function QuizRoute({ gameData, userId, getPlayerKey, submitAnswer }) {
           onClick={() => handleClick(questionObj.options[0])}
           className="bg-red-500 hover:bg-red-600 text-white text-3xl font-semibold rounded-xl flex items-center justify-center transition-transform transform hover:scale-105"
         >
-          {questionObj.options[0]}
+          <div className="flex items-center w-full">
+            <span className="bg-black/20 px-3 py-1 text-lg rounded mr-4">1</span>
+            <span>{questionObj.options[0]}</span>
+          </div>
         </button>
         <button
           id="1"
           onClick={() => handleClick(questionObj.options[1])}
           className="bg-orange-500 hover:bg-orange-600 text-white text-3xl font-semibold rounded-xl flex items-center justify-center transition-transform transform hover:scale-105"
         >
-          {questionObj.options[1]}
+          <div className="flex items-center w-full">
+            <span className="bg-black/20 px-3 py-1 text-lg rounded mr-4">2</span>
+            <span>{questionObj.options[1]}</span>
+          </div>
         </button>
         <button
           id="2"
           onClick={() => handleClick(questionObj.options[2])}
           className="bg-green-500 hover:bg-green-600 text-white text-3xl font-semibold rounded-xl flex items-center justify-center transition-transform transform hover:scale-105"
         >
-          {questionObj.options[2]}
+          <div className="flex items-center w-full">
+            <span className="bg-black/20 px-3 py-1 text-lg rounded mr-4">3</span>
+            <span>{questionObj.options[2]}</span>
+          </div>
         </button>
         <button
           id="3"
           onClick={() => handleClick(questionObj.options[3])}
           className="bg-blue-500 hover:bg-blue-600 text-white text-3xl font-semibold rounded-xl flex items-center justify-center transition-transform transform hover:scale-105"
         >
-          {questionObj.options[3]}
+          <div className="flex items-center w-full">
+            <span className="bg-black/20 px-3 py-1 text-lg rounded mr-4">4</span>
+            <span>{questionObj.options[3]}</span>
+          </div>
         </button>
       </div>
 

@@ -219,10 +219,10 @@ function App() {
       [`${playerKey}.correctCount`]: newCorrectCount,
     };
 
-    console.log(tmpIncorrect);
+    console.log(tmpIncorrect + " " + newIndex);
     if (
       (newIndex >= gameData.questions.length || secTry) &&
-      tmpIncorrect.length === 0
+      tmpIncorrect.length === 0 && newCorrectCount === gameData.questions.length
     ) {
       updatePayload[`${playerKey}.finished`] = true;
 
