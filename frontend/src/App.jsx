@@ -25,7 +25,6 @@ function App() {
     messagingSenderId: import.meta.env.VITE_FIREBASE_MSG_SENDER_ID,
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
     measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
-    openRouterApiKey: import.meta.env.VITE_OPENROUTER_API_KEY,
   };
   const initialAuthToken =
     typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
@@ -140,7 +139,7 @@ function App() {
       joinerId: null,
       joinerName: null,
       status: 'waiting',
-      questions: DEFAULT_QUIZ,
+      questions: null,
       hostProgress: { currentIndex: 0, correctCount: 0, timeTaken: null },
       joinerProgress: { currentIndex: 0, correctCount: 0, timeTaken: null },
       winnerId: null,
@@ -203,7 +202,7 @@ function App() {
     try {
       const flashcards = await generateQuizFromFile(
         uploadedFile,
-        firebaseConfig.openRouterApiKey
+        import.meta.env.VITE_OPENROUTER_API_KEY
       );
       console.log('Generated flashcards:', flashcards);
 
